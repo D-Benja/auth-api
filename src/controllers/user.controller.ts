@@ -1,7 +1,17 @@
 import { Request, Response } from "express";
-import { CreateUserInput, VerifyUserInput } from "../schemas/user.schema";
-import { createUser, FindUserById } from "../services/user.services";
+import {
+  CreateUserInput,
+  ForgotPasswordInput,
+  ResetPasswordInput,
+  VerifyUserInput,
+} from "../schemas/user.schema";
+import {
+  createUser,
+  FindUserByEmail,
+  FindUserById,
+} from "../services/user.services";
 import sendEmail from "../utils/mailer";
+import { v4 as uuidv4 } from "uuid";
 
 export async function CreateUserHandler(
   req: Request<{}, {}, CreateUserInput>,
@@ -54,6 +64,81 @@ export async function verifyUserHandler(
     await user.save();
 
     return res.send("User verified successfully");
+  } catch (error) {
+    console.log(error);
+    return res.status(400).send(error);
+  }
+}
+
+export async function forgotPasswordHandler(
+  req: Request<{}, {}, ForgotPasswordInput>,
+  res: Response
+) {
+  const { email } = req.body;
+
+  try {
+    const user = await FindUserByEmail(email);
+
+    if (!user) {
+      return res
+        .status(404)
+        .send(
+          "User not found, please check your email and verify your account"
+        );
+    }
+
+    if (!user.verified) {
+      return res.status(400).send("User is not verified");
+    }
+
+    user.passwordResetCode = uuidv4();
+
+    await user.save();
+
+    await sendEmail({
+      from: "test@test.com",
+      to: user.email,
+      subject: "Reset your password",
+      text: `Please reset your password with this code: ${user.passwordResetCode} and the id: ${user._id}`,
+    });
+
+    return res.send(
+      "If a user with that email is registered, you will receive an email with a link to reset your passwordt"
+    );
+  } catch (error) {
+    console.log(error);
+    return res.status(400).send(error);
+  }
+}
+
+export async function resetPasswordHandler(
+  req: Request<ResetPasswordInput["params"], {}, ResetPasswordInput["body"]>,
+  res: Response
+) {
+  const { id, passwordResetCode } = req.params;
+  const { password } = req.body;
+
+  try {
+    const user = await FindUserById(id);
+
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+
+    if (!user.passwordResetCode) {
+      return res.status(400).send("User has not requested a password reset");
+    }
+
+    if (user.passwordResetCode !== passwordResetCode) {
+      return res.status(400).send("Invalid password reset code");
+    }
+
+    user.passwordResetCode = null;
+    user.password = password;
+
+    await user.save();
+
+    return res.send("Password reset successfully");
   } catch (error) {
     console.log(error);
     return res.status(400).send(error);

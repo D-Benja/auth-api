@@ -1,6 +1,7 @@
 import {
   DocumentType,
   getModelForClass,
+  index,
   modelOptions,
   pre,
   prop,
@@ -19,6 +20,7 @@ import { v4 as uuidv4 } from "uuid";
 
   return;
 })
+@index({ email: 1 }, { unique: true })
 @modelOptions({
   schemaOptions: {
     timestamps: true,

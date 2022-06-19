@@ -7,3 +7,7 @@ export async function createUser(input: Partial<User>) {
 export async function FindUserById(id: string) {
   return UserModel.findById(id);
 }
+
+export async function FindUserByEmail(email: string) {
+  return UserModel.findOne({ email });
+}

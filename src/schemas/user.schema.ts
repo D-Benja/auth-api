@@ -30,5 +30,33 @@ export const VerifyUserSchema = object({
   }),
 });
 
+export const ForgotPasswordSchema = object({
+  body: object({
+    email: string({
+      required_error: "Email Name Is Required",
+    }).email("Enter a valid email"),
+  }),
+});
+
+export const ResetPasswordSchema = object({
+  params: object({
+    id: string(),
+    passwordResetCode: string(),
+  }),
+  body: object({
+    password: string({
+      required_error: "A Password Is Required",
+    }).min(6, "Password Must Be At Least 6 Characters"),
+    passwordConfirmation: string({
+      required_error: "Password Confirmation Is Required",
+    }),
+  }).refine((data) => (data.password = data.passwordConfirmation), {
+    message: "Password Confirmation Must Match Password",
+    path: ["passwordConfirmation"],
+  }),
+});
+
 export type CreateUserInput = TypeOf<typeof CreateUserSchema>["body"];
 export type VerifyUserInput = TypeOf<typeof VerifyUserSchema>["params"];
+export type ForgotPasswordInput = TypeOf<typeof ForgotPasswordSchema>["body"];
+export type ResetPasswordInput = TypeOf<typeof ResetPasswordSchema>;
