@@ -2,9 +2,11 @@ import express from "express";
 import {
   CreateUserHandler,
   forgotPasswordHandler,
+  getCurrenUserHandler,
   resetPasswordHandler,
   verifyUserHandler,
 } from "../controllers/user.controller";
+import requireUser from "../middleware/requireUser";
 import validateResources from "../middleware/validateResources";
 import {
   CreateUserSchema,
@@ -45,5 +47,7 @@ router.post(
   validateResources(ResetPasswordSchema),
   resetPasswordHandler
 );
+
+router.get("/api/users/me", requireUser, getCurrenUserHandler);
 
 export default router;

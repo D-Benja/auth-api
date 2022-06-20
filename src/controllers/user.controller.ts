@@ -144,3 +144,13 @@ export async function resetPasswordHandler(
     return res.status(400).send(error);
   }
 }
+
+export async function getCurrenUserHandler(_req: Request, res: Response) {
+  const user = res.locals.user;
+
+  if (!user) {
+    return res.status(401).send("User not found");
+  }
+
+  return res.send(user);
+}

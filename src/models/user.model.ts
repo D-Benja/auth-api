@@ -10,6 +10,14 @@ import {
 import argon2d from "argon2";
 import { v4 as uuidv4 } from "uuid";
 
+export const privateFields = [
+  "password",
+  "verificationCode",
+  "passwordResetCode",
+  "verified",
+  "__v",
+];
+
 @pre<User>("save", async function () {
   if (!this.isModified("password")) {
     return;
